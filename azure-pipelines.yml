@@ -12,11 +12,9 @@ resources:
   fetchDepth: 5
 
 queue:
-  name: Default
+  name: Hosted Windows 2019 with VS2019
   demands: 
   - msbuild
-  - npm
-  - node.js
 #  - visualstudio
 #  - vstest
   
