@@ -34,7 +34,7 @@ steps:
   displayName: 'msbuild: NugetServer'
   inputs:
     solution: NugetServer.msbuild
-    msbuildVersion: 15.0
+    msbuildVersion: 16.0
     msbuildArchitecture: x64
     configuration: Release
 
