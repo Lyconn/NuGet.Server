@@ -1,0 +1,47 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master
+    - release/*
+
+resources:
+- repo: self
+  clean: true
+  fetchDepth: 5
+
+queue:
+  name: Default
+  demands: 
+  - msbuild
+  - npm
+  - node.js
+#  - visualstudio
+#  - vstest
+  
+steps:
+- task: CmdLine@1
+  displayName: 'init: show-env-vars'
+  inputs:
+    filename: set
+
+- task: DeleteFiles@1
+  displayName: 'cleanup: binary-folder'
+  inputs:
+    SourceFolder: '$(Build.BinariesDirectory)'
+    Contents: '**'
+
+- task: MSBuild@1
+  displayName: 'msbuild: NugetServer'
+  inputs:
+    solution: NugetServer.msbuild
+    msbuildVersion: 15.0
+    msbuildArchitecture: x64
+    configuration: Release
+
+- task: PublishBuildArtifacts@1
+  displayName: 'publish: artifacts'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'NugetServer'
