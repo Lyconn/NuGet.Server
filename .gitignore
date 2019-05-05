@@ -134,7 +134,7 @@ publish/
 ## TODO: Comment the next line if you want to checkin your
 ## web deploy settings but do note that will include unencrypted
 ## passwords
-*.pubxml
+#*.pubxml
 
 # NuGet Packages
 packages/*
@@ -201,7 +201,6 @@ src/NuGet.Server/Packages/**/*.sha512
 src/NuGet.Server/Packages/**/*.nuspec
 src/NuGet.Server/Server.Publish.xml
 DebugConstants.cs
-*.log
 *.userprefs
 src/VsExtension/source.extension.vsixmanifest
 !packages/Microsoft.Web.Xdt.1.0.0-alpha/
@@ -217,3 +216,4 @@ tools
 Results.*.xml
 !**/TestData/*.nupkg
 .vs
+/packages/

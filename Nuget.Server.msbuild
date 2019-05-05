@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+ Build Parameter:
+ NugetServer: [Mandantory] Nuget server url, can be a local folder or remote nuget server.
+ NugetApiKey: [Optional] Api key for nuget server.
+-->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- The build target configuration (Debug versus Release) -->
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+    <!-- The root directory containing the build file -->
+    <RootPath Condition="'$(RootPath)'==''">$(MSBuildProjectDirectory)</RootPath>
+    <!-- The Source Code Solution Name, this is conventions based and should be named the same as the build file. e.g. example.sln should have a matching example.msbuild file -->
+    <BuildSolutionFile Condition="'$(BuildSolutionFile)'==''">$(RootPath)\NuGet.Server.sln</BuildSolutionFile>
+    <VersionFilePath Condition="'$(VersionFilePath)'==''">$(RootPath)\version</VersionFilePath>
+    <VersionScanDir Condition="'$(VersionScanDir)'==''">$(MSBuildProjectDirectory)</VersionScanDir>
+    <SkipVersion>false</SkipVersion>
+    <WebSitePublish Condition="'$(WebSitePublish)'==''">true</WebSitePublish>
+	<PackageFolder Condition="'$(PackageFolder)' == ''">$(BUILD_BINARIESDIRECTORY)</PackageFolder>
+	<PackageFolder Condition="'$(PackageFolder)' == ''">$(MSBuildProjectDirectory)\Build</PackageFolder>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(PackageSources)' == '' ">
+    <PackageSource Include="$(NugetServer)" />
+    <PackageSource Include="https://nuget.org/api/v2/" />
+  </ItemGroup>
+  <Target Name="UpdateVersion" BeforeTargets="BeforeBuild">
+    <!--
+    <ReadLinesFromFile File="$(VersionFilePath)">
+      <Output TaskParameter="Lines" PropertyName="Version" />
+    </ReadLinesFromFile>
+    <Error Text="Please update $(RootPath)\version before compile: $(Version)" Condition="'$(Version)' == ''" />
+    <ItemGroup>
+      <AssemblyFiles Include="$(VersionScanDir)\**\AssemblyInfo.cs" Exclude="$(RootPath)\packages\**"/>
+    </ItemGroup>
+    <ReadLinesFromFile File="$(MSBuildProjectDirectory)\version">
+      <Output TaskParameter="Lines" PropertyName="VersionLines" />
+    </ReadLinesFromFile>
+    <FormatVersion FormatType="Version" Version="$(VersionLines).*" Revision="$(BUILD_BUILDID)">
+      <Output TaskParameter="OutputVersion" PropertyName="PackageVersion" />
+    </FormatVersion>
+    <Message Text="Updating AssemblyInfo to $(PackageVersion) ..." />
+    <AssemblyInfo AssemblyInfoFiles="%(AssemblyFiles.FullPath)" AssemblyVersion="$(VersionLines).0" AssemblyInformationalVersion="$(PackageVersion).$(GIT_COMMIT)"
+      UpdateAssemblyInformationalVersion="true" AssemblyFileVersion="$(PackageVersion)" />
+    -->
+  </Target>
+  <!-- The Clean Target -->
+  <Target Name="BeforeBuild" />
+  <Target Name="AfterBuild" />
+  <!-- The Module UI -->
+  <!-- The Compile Target, compiles the source code for the solution -->
+  <Target Name="Build" DependsOnTargets="BeforeBuild" AfterTargets="AfterBuild">
+    <MSBuild Projects="$(BuildSolutionFile)" ContinueOnError="false"
+      Condition="'$(BuildSolutionFile)'!='' And Exists('$(BuildSolutionFile)')"
+      Properties="Configuration=$(Configuration);
+                  DeployOnBuild=$(WebSitePublish);
+                  PublishProfile=$(RootPath)\NuGet.Server.pubxml;
+                  CodeAnalysisRuleSet=$(RootPath)\NetFxRules.ruleset;
+                  DebugSymbols=false;
+                  SdkToolsPath=$(SdkToolsPath);
+                  BuildInParallel=true;
+				  PackageFolder=$(PackageFolder)
+                  ">
+      <Output ItemName="BuildOutput" TaskParameter="TargetOutputs"/>
+    </MSBuild>
+  </Target>
+</Project>
