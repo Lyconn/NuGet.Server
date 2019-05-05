@@ -30,6 +30,15 @@ steps:
     SourceFolder: '$(Build.BinariesDirectory)'
     Contents: '**'
 
+- task: NuGetToolInstaller@0
+  displayName: 'Use NuGet >=4.0.0'
+  inputs:
+    versionSpec: '>=4.0.0'
+    checkLatest: true
+
+- task: NuGetCommand@2
+  displayName: 'nuget: restore'
+
 - task: MSBuild@1
   displayName: 'msbuild: NugetServer'
   inputs:
