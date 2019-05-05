@@ -33,7 +33,7 @@ steps:
 - task: MSBuild@1
   displayName: 'msbuild: NugetServer'
   inputs:
-    solution: NugetServer.msbuild
+    solution: Nuget.Server.msbuild
     msbuildVersion: 16.0
     msbuildArchitecture: x64
     configuration: Release
