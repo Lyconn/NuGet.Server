@@ -1,23 +1,19 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
+using NuGet.Server.Core.DataServices;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using NuGet.Server.Core.DataServices;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class NormalizeVersionInterceptorTest
-    {
+namespace NuGet.Server.Core.Tests {
+    public class NormalizeVersionInterceptorTest {
         private static readonly MemberInfo _versionMember = typeof(ODataPackage).GetProperty("Version");
         private static readonly MemberInfo _normalizedVersionMember = typeof(ODataPackage).GetProperty("NormalizedVersion");
 
-        public static IEnumerable<object[]> TheoryData
-        {
-            get
-            {
+        public static IEnumerable<object[]> TheoryData {
+            get {
                 return new[]
                 {
                     new object[]
@@ -89,36 +85,35 @@ namespace NuGet.Server.Core.Tests
         }
 
         [Theory]
-        [MemberData("TheoryData")]
-        public void RewritesVersionPropertyNameToNormalizedVersionPropertyName(Expression originalExpression, Expression expectedExpression)
-        {
+        [MemberData(nameof(TheoryData))]
+        public void RewritesVersionPropertyNameToNormalizedVersionPropertyName(Expression originalExpression, Expression expectedExpression) {
             // Arrange
-            var interceptor = new NormalizeVersionInterceptor();
+            NormalizeVersionInterceptor interceptor = new NormalizeVersionInterceptor();
 
             // Act
-            var rewrittenExpression = interceptor.Visit(originalExpression);
+            Expression rewrittenExpression = interceptor.Visit(originalExpression);
 
             // Assert
             Assert.Equal(rewrittenExpression.ToString(), expectedExpression.ToString());
         }
 
         [Fact]
-        public void FindsPackagesUsingNormalizedVersion()
-        {
+        public void FindsPackagesUsingNormalizedVersion() {
             // Arrange
-            var data = new List<ODataPackage>();
-            data.Add(new ODataPackage { Id = "foo", Version = "1.0.0.0.0.0", NormalizedVersion = "1.0.0"});
-            data.Add(new ODataPackage { Id = "foo1", Version = "2.0.0+tagged", NormalizedVersion = "2.0.0" });
+            List<ODataPackage> data = new List<ODataPackage> {
+                new ODataPackage { Id = "foo", Version = "1.0.0.0.0.0", NormalizedVersion = "1.0.0" },
+                new ODataPackage { Id = "foo1", Version = "2.0.0+tagged", NormalizedVersion = "2.0.0" }
+            };
 
-            var queryable = data.AsQueryable().InterceptWith(new NormalizeVersionInterceptor());
+            IQueryable<ODataPackage> queryable = data.AsQueryable().InterceptWith(new NormalizeVersionInterceptor());
 
             // Act
-            var result1 = queryable.FirstOrDefault(p => p.Version == "1.0");
-            var result2 = queryable.FirstOrDefault(p => p.Version == "1.0.0");
-            var result3 = queryable.FirstOrDefault(p => p.Version == "1.0.0.0");
-            var result4 = queryable.FirstOrDefault(p => p.Version == "2.0");
-            var result5 = queryable.FirstOrDefault(p => p.Version == "2.0.0");
-            var result6 = queryable.FirstOrDefault(p => p.Version == "2.0.0+someOtherTag");
+            ODataPackage result1 = queryable.FirstOrDefault(p => p.Version == "1.0");
+            ODataPackage result2 = queryable.FirstOrDefault(p => p.Version == "1.0.0");
+            ODataPackage result3 = queryable.FirstOrDefault(p => p.Version == "1.0.0.0");
+            ODataPackage result4 = queryable.FirstOrDefault(p => p.Version == "2.0");
+            ODataPackage result5 = queryable.FirstOrDefault(p => p.Version == "2.0.0");
+            ODataPackage result6 = queryable.FirstOrDefault(p => p.Version == "2.0.0+someOtherTag");
 
             // Assert
             Assert.Equal(result1, data[0]);

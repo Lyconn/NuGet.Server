@@ -1,22 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
-using System;
-using System.Linq;
 using NuGet.Server.Core.DataServices;
 using NuGet.Server.Core.Infrastructure;
+using System;
+using System.Linq;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class PackageExtensionsTest
-    {
+namespace NuGet.Server.Core.Tests {
+    public class PackageExtensionsTest {
         [Fact]
-        public void AsODataPackage_Uses1900ForUnlistedPublished()
-        {
+        public void AsODataPackage_Uses1900ForUnlistedPublished() {
             // Arrange
-            var package = new ServerPackage
-            {
+            ServerPackage package = new ServerPackage {
                 Version = new SemanticVersion("0.1.0"),
                 Authors = Enumerable.Empty<string>(),
                 Owners = Enumerable.Empty<string>(),
@@ -26,7 +22,7 @@ namespace NuGet.Server.Core.Tests
             };
 
             // Act
-            var actual = package.AsODataPackage(ClientCompatibility.Max);
+            ODataPackage actual = package.AsODataPackage(ClientCompatibility.Max);
 
             // Assert
             Assert.Equal(
@@ -35,11 +31,9 @@ namespace NuGet.Server.Core.Tests
         }
 
         [Fact]
-        public void AsODataPackage_UsesCreatedForListedPublished()
-        {
+        public void AsODataPackage_UsesCreatedForListedPublished() {
             // Arrange
-            var package = new ServerPackage
-            {
+            ServerPackage package = new ServerPackage {
                 Version = new SemanticVersion("0.1.0"),
                 Authors = Enumerable.Empty<string>(),
                 Owners = Enumerable.Empty<string>(),
@@ -49,7 +43,7 @@ namespace NuGet.Server.Core.Tests
             };
 
             // Act
-            var actual = package.AsODataPackage(ClientCompatibility.Max);
+            ODataPackage actual = package.AsODataPackage(ClientCompatibility.Max);
 
             // Assert
             Assert.Equal(
@@ -71,11 +65,9 @@ namespace NuGet.Server.Core.Tests
             bool v2Latest,
             int level,
             bool expectedAbsLatest,
-            bool expectedLatest)
-        {
+            bool expectedLatest) {
             // Arrange
-            var package = new ServerPackage
-            {
+            ServerPackage package = new ServerPackage {
                 Version = new SemanticVersion("0.1.0-rc.1"),
                 Authors = Enumerable.Empty<string>(),
                 Owners = Enumerable.Empty<string>(),
@@ -85,10 +77,10 @@ namespace NuGet.Server.Core.Tests
                 SemVer2IsAbsoluteLatest = v2AbsLatest,
                 SemVer2IsLatest = v2Latest,
             };
-            var semVerLevel = new SemanticVersion(level, minor: 0, build: 0, specialVersion: null);
+            SemanticVersion semVerLevel = new SemanticVersion(level, minor: 0, build: 0, specialVersion: null);
 
             // Act
-            var actual = package.AsODataPackage(new ClientCompatibility(semVerLevel));
+            ODataPackage actual = package.AsODataPackage(new ClientCompatibility(semVerLevel));
 
             // Assert
             Assert.Equal(expectedAbsLatest, actual.IsAbsoluteLatestVersion);

@@ -4,10 +4,8 @@
 using NuGet.Server.Core.Infrastructure;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class ClientCompatibilityFactoryTests
-    {
+namespace NuGet.Server.Core.Tests {
+    public class ClientCompatibilityFactoryTests {
         [Theory]
         [InlineData(null, "1.0.0")]
         [InlineData("", "1.0.0")]
@@ -19,13 +17,12 @@ namespace NuGet.Server.Core.Tests
         [InlineData("2.0.0", "2.0.0")]
         [InlineData("2.0.0-rc.1", "2.0.0-rc.1")]
         [InlineData("3.0.0", "3.0.0")]
-        public void FromProperties_SetsSemVerLevel(string semVerLevel, string unparsedExpected)
-        {
+        public void FromProperties_SetsSemVerLevel(string semVerLevel, string unparsedExpected) {
             // Arrange
-            var expected = new SemanticVersion(unparsedExpected);
+            SemanticVersion expected = new SemanticVersion(unparsedExpected);
 
             // Arrange & Act
-            var actual = ClientCompatibilityFactory.FromProperties(semVerLevel);
+            ClientCompatibility actual = ClientCompatibilityFactory.FromProperties(semVerLevel);
 
             // Assert
             Assert.Equal(expected, actual.SemVerLevel);

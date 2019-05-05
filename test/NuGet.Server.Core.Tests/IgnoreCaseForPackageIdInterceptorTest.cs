@@ -1,24 +1,20 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
+using NuGet.Server.Core.DataServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using NuGet.Server.Core.DataServices;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class IgnoreCaseForPackageIdInterceptorTest
-    {
+namespace NuGet.Server.Core.Tests {
+    public class IgnoreCaseForPackageIdInterceptorTest {
         private static readonly MemberInfo _idMember = typeof(ODataPackage).GetProperty("Id");
         private static readonly Expression<Func<string, string, int>> _ordinalIgnoreCaseComparer = (a, b) => StringComparer.OrdinalIgnoreCase.Compare(a, b);
 
-        public static IEnumerable<object[]> TheoryData
-        {
-            get
-            {
+        public static IEnumerable<object[]> TheoryData {
+            get {
                 return new[]
                 {
                     new object[]
@@ -57,42 +53,41 @@ namespace NuGet.Server.Core.Tests
         }
 
         [Theory]
-        [MemberData("TheoryData")]
-        public void RewritesIdComparisonToIgnoreCaseComparison(Expression originalExpression, Expression expectedExpression)
-        {
+        [MemberData(nameof(TheoryData))]
+        public void RewritesIdComparisonToIgnoreCaseComparison(Expression originalExpression, Expression expectedExpression) {
             // Arrange
-            var interceptor = new IgnoreCaseForPackageIdInterceptor();
+            IgnoreCaseForPackageIdInterceptor interceptor = new IgnoreCaseForPackageIdInterceptor();
 
             // Act
-            var rewrittenExpression = interceptor.Visit(originalExpression);
+            Expression rewrittenExpression = interceptor.Visit(originalExpression);
 
             // Assert
             Assert.Equal(rewrittenExpression.ToString(), expectedExpression.ToString());
         }
 
         [Fact]
-        public void FindsPackagesIgnoringCase()
-        {
+        public void FindsPackagesIgnoringCase() {
             // Arrange
-            var data = new List<ODataPackage>();
-            data.Add(new ODataPackage { Id = "foo" });
-            data.Add(new ODataPackage { Id = "BAR" });
-            data.Add(new ODataPackage { Id = "bAz" });
+            List<ODataPackage> data = new List<ODataPackage> {
+                new ODataPackage { Id = "foo" },
+                new ODataPackage { Id = "BAR" },
+                new ODataPackage { Id = "bAz" }
+            };
 
-            var queryable = data.AsQueryable().InterceptWith(new IgnoreCaseForPackageIdInterceptor());
+            IQueryable<ODataPackage> queryable = data.AsQueryable().InterceptWith(new IgnoreCaseForPackageIdInterceptor());
 
             // Act
-            var result1 = queryable.FirstOrDefault(p => p.Id == "foo");
-            var result2 = queryable.FirstOrDefault(p => p.Id == "FOO");
-            var result3 = queryable.FirstOrDefault(p => p.Id == "Foo");
+            ODataPackage result1 = queryable.FirstOrDefault(p => p.Id == "foo");
+            ODataPackage result2 = queryable.FirstOrDefault(p => p.Id == "FOO");
+            ODataPackage result3 = queryable.FirstOrDefault(p => p.Id == "Foo");
 
-            var result4 = queryable.FirstOrDefault(p => p.Id == "bar");
-            var result5 = queryable.FirstOrDefault(p => p.Id == "BAR");
-            var result6 = queryable.FirstOrDefault(p => p.Id == "baR");
+            ODataPackage result4 = queryable.FirstOrDefault(p => p.Id == "bar");
+            ODataPackage result5 = queryable.FirstOrDefault(p => p.Id == "BAR");
+            ODataPackage result6 = queryable.FirstOrDefault(p => p.Id == "baR");
 
-            var result7 = queryable.FirstOrDefault(p => p.Id == "baz");
-            var result8 = queryable.FirstOrDefault(p => p.Id == "BAZ");
-            var result9 = queryable.FirstOrDefault(p => p.Id == "bAz");
+            ODataPackage result7 = queryable.FirstOrDefault(p => p.Id == "baz");
+            ODataPackage result8 = queryable.FirstOrDefault(p => p.Id == "BAZ");
+            ODataPackage result9 = queryable.FirstOrDefault(p => p.Id == "bAz");
 
             // Assert
             Assert.Equal(result1.Id, data[0].Id);

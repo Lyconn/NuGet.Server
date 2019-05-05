@@ -1,37 +1,35 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
-using System;
-using System.Collections.Generic;
-using System.Web.Http;
 using Microsoft.Owin.Hosting;
 using NuGet.Server.Core.Infrastructure;
 using NuGet.Server.Core.Logging;
 using Owin;
+using System;
+using System.Collections.Generic;
+using System.Web.Http;
 
-namespace NuGet.Server.V2.Samples.OwinHost
-{
-    class Program
-    {
+namespace NuGet.Server.V2.Samples.OwinHost {
+    internal class Program {
         public static IServerPackageRepository NuGetPrivateRepository { get; private set; }
         public static IServerPackageRepository NuGetPublicRepository { get; private set; }
         public static IServerPackageRepository NuGetVeryPublicRepository { get; private set; }
 
-        public const string ApiKey = "key123"; 
+        public const string ApiKey = "key123";
 
-        static void Main(string[] args)
-        {
-            var baseAddress = "http://localhost:9000/";
+        private static void Main(string[] args) {
+            string baseAddress = "http://localhost:9000/";
 
             // Set up a common settingsProvider to be used by all repositories. 
             // If a setting is not present in dictionary default value will be used.
-            var settings = new Dictionary<string, object>();
-            settings.Add("enableDelisting", false);                         //default=false
-            settings.Add("enableFrameworkFiltering", false);                //default=false
-            settings.Add("ignoreSymbolsPackages", true);                    //default=false
-            settings.Add("allowOverrideExistingPackageOnPush", true);       //default=true
-            var settingsProvider = new DictionarySettingsProvider(settings);
+            Dictionary<string, object> settings = new Dictionary<string, object> {
+                { "enableDelisting", false },                         //default=false
+                { "enableFrameworkFiltering", false },                //default=false
+                { "ignoreSymbolsPackages", true },                    //default=false
+                { "allowOverrideExistingPackageOnPush", true }       //default=true
+            };
+            DictionarySettingsProvider settingsProvider = new DictionarySettingsProvider(settings);
 
-            var logger = new ConsoleLogger();
+            ConsoleLogger logger = new ConsoleLogger();
 
             //Sets up three repositories with seperate packages in each feed. These repositories are used by our controllers.
             //In a real world application the repositories will probably be inserted through DI framework, or created in the controllers constructor.
@@ -40,8 +38,7 @@ namespace NuGet.Server.V2.Samples.OwinHost
             NuGetVeryPublicRepository = NuGetV2WebApiEnabler.CreatePackageRepository(@"d:\omnishopcentraldata\Packages\VeryPublic", settingsProvider, logger);
 
             // Start OWIN host, which in turn will create a new instance of Startup class, and execute its Configuration method.
-            using (WebApp.Start<Startup>(url: baseAddress))
-            {
+            using (WebApp.Start<Startup>(url: baseAddress)) {
                 Console.WriteLine("Server listening at baseaddress: " + baseAddress);
                 Console.WriteLine("[ENTER] to close server");
                 Console.ReadLine();
@@ -49,15 +46,13 @@ namespace NuGet.Server.V2.Samples.OwinHost
         }
     }
 
-    public class Startup
-    {
-        public void Configuration(IAppBuilder appBuilder)
-        {
+    public class Startup {
+        public void Configuration(IAppBuilder appBuilder) {
             //Simple authenticator that authorizes all users that supply a username and password. Only meant for demonstration purposes.
             appBuilder.Use(typeof(BasicAuthentication));
 
             // Configure Web API for self-host. 
-            var config = new HttpConfiguration();
+            HttpConfiguration config = new HttpConfiguration();
             appBuilder.UseWebApi(config);
 
             //Map route for ordinary controllers, this is not neccessary for the NuGet feed.

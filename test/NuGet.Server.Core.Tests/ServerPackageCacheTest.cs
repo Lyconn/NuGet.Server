@@ -1,17 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
+using Moq;
+using NuGet.Server.Core.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Moq;
-using NuGet.Server.Core.Infrastructure;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class ServerPackageCacheTest
-    {
+namespace NuGet.Server.Core.Tests {
+    public class ServerPackageCacheTest {
         private const string CacheFileName = "store.json";
 
         private const string PackageId = "NuGet.Versioning";
@@ -38,10 +36,9 @@ namespace NuGet.Server.Core.Tests
         [InlineData("{\"SchemaVersion\":\"4.0.0\",\"Packages\":[]}")]
         [InlineData("{\"Packages\":[]}")]
         [InlineData("{\"SchemaVersion\":\"3.0.0\"}")]
-        public void Constructor_IgnoresAndDeletesInvalidCacheFile(string content)
-        {
+        public void Constructor_IgnoresAndDeletesInvalidCacheFile(string content) {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
@@ -50,7 +47,7 @@ namespace NuGet.Server.Core.Tests
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(content)));
 
             // Act
-            var actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Assert
             Assert.Empty(actual.GetAll());
@@ -60,10 +57,9 @@ namespace NuGet.Server.Core.Tests
         [Theory]
         [InlineData("{\"SchemaVersion\":\"3.0.0\",\"Packages\":[]}", 0)]
         [InlineData("{\"SchemaVersion\":\"3.0.0\",\"Packages\":[{\"Id\":\"NuGet.Versioning\",\"Version\":\"3.5.0\"}]}", 1)]
-        public void Constructor_LeavesValidCacheFile(string content, int count)
-        {
+        public void Constructor_LeavesValidCacheFile(string content, int count) {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
@@ -72,7 +68,7 @@ namespace NuGet.Server.Core.Tests
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(content)));
 
             // Act
-            var actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Assert
             Assert.Equal(count, actual.GetAll().Count());
@@ -80,11 +76,10 @@ namespace NuGet.Server.Core.Tests
         }
 
         [Fact]
-        public void Constructor_DeserializesSemVer2Version()
-        {
+        public void Constructor_DeserializesSemVer2Version() {
             // Arrange
-            var cacheFile = "{\"SchemaVersion\":\"3.0.0\",\"Packages\":[{\"Id\":\"" + PackageId + "\",\"Version\":\"" + SemVer2VersionString + "\"}]}";
-            var fileSystem = new Mock<IFileSystem>();
+            string cacheFile = "{\"SchemaVersion\":\"3.0.0\",\"Packages\":[{\"Id\":\"" + PackageId + "\",\"Version\":\"" + SemVer2VersionString + "\"}]}";
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
@@ -93,11 +88,11 @@ namespace NuGet.Server.Core.Tests
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(cacheFile)));
 
             // Act
-            var actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Assert
-            Assert.Equal(1, actual.GetAll().Count());
-            var package = actual.GetAll().First();
+            Assert.Single(actual.GetAll());
+            ServerPackage package = actual.GetAll().First();
             Assert.Equal(SemVer2Version.ToOriginalString(), package.Version.ToOriginalString());
             Assert.Equal(SemVer2Version.ToFullString(), package.Version.ToFullString());
             Assert.Equal(SemVer2Version.ToNormalizedString(), package.Version.ToNormalizedString());
@@ -106,11 +101,10 @@ namespace NuGet.Server.Core.Tests
         [Theory]
         [InlineData("true", true)]
         [InlineData("false", false)]
-        public void Constructor_DeserializesIsSemVer2(string serialized, bool expected)
-        {
+        public void Constructor_DeserializesIsSemVer2(string serialized, bool expected) {
             // Arrange
-            var cacheFile = "{\"SchemaVersion\":\"3.0.0\",\"Packages\":[{\"Id\":\"" + PackageId + "\",\"Version\":\"" + SemVer2VersionString + "\",\"IsSemVer2\":" + serialized + "}]}";
-            var fileSystem = new Mock<IFileSystem>();
+            string cacheFile = "{\"SchemaVersion\":\"3.0.0\",\"Packages\":[{\"Id\":\"" + PackageId + "\",\"Version\":\"" + SemVer2VersionString + "\",\"IsSemVer2\":" + serialized + "}]}";
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
@@ -119,31 +113,29 @@ namespace NuGet.Server.Core.Tests
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(cacheFile)));
 
             // Act
-            var actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Assert
-            Assert.Equal(1, actual.GetAll().Count());
-            var package = actual.GetAll().First();
+            Assert.Single(actual.GetAll());
+            ServerPackage package = actual.GetAll().First();
             Assert.Equal(expected, package.IsSemVer2);
         }
 
         [Fact]
-        public void Persist_RetainsSemVer2Version()
-        {
+        public void Persist_RetainsSemVer2Version() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(false);
 
-            var memoryStream = new MemoryStream();
+            MemoryStream memoryStream = new MemoryStream();
             fileSystem
                 .Setup(x => x.CreateFile(CacheFileName))
                 .Returns(memoryStream);
 
-            var actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
-            actual.Add(new ServerPackage
-            {
+            ServerPackageCache actual = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            actual.Add(new ServerPackage {
                 Id = PackageId,
                 Version = SemVer2Version
             }, enableDelisting: false);
@@ -152,28 +144,27 @@ namespace NuGet.Server.Core.Tests
             actual.Persist();
 
             // Assert
-            var content = Encoding.UTF8.GetString(memoryStream.ToArray());
+            string content = Encoding.UTF8.GetString(memoryStream.ToArray());
             Assert.Contains(SemVer2VersionString, content);
         }
 
         [Fact]
-        public void Remove_SupportsEnabledUnlisting()
-        {
+        public void Remove_SupportsEnabledUnlisting() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
             fileSystem
                 .Setup(x => x.OpenFile(CacheFileName))
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(MinimalCacheFile)));
-            var target = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache target = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Act
             target.Remove(PackageId, PackageVersion, enableDelisting: true);
 
             // Assert
-            var package = target.GetAll().FirstOrDefault();
+            ServerPackage package = target.GetAll().FirstOrDefault();
             Assert.NotNull(package);
             Assert.Equal(PackageId, package.Id);
             Assert.Equal(PackageVersion, package.Version);
@@ -181,17 +172,16 @@ namespace NuGet.Server.Core.Tests
         }
 
         [Fact]
-        public void Remove_SupportsDisabledUnlisting()
-        {
+        public void Remove_SupportsDisabledUnlisting() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
             fileSystem
                 .Setup(x => x.OpenFile(CacheFileName))
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(MinimalCacheFile)));
-            var target = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache target = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Act
             target.Remove(PackageId, PackageVersion, enableDelisting: false);
@@ -201,89 +191,82 @@ namespace NuGet.Server.Core.Tests
         }
 
         [Fact]
-        public void Remove_NoOpsWhenPackageDoesNotExist()
-        {
+        public void Remove_NoOpsWhenPackageDoesNotExist() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(true);
             fileSystem
                 .Setup(x => x.OpenFile(CacheFileName))
                 .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(MinimalCacheFile)));
-            var target = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            ServerPackageCache target = new ServerPackageCache(fileSystem.Object, CacheFileName);
 
             // Act
             target.Remove("Foo", PackageVersion, enableDelisting: false);
 
             // Assert
-            var package = target.GetAll().FirstOrDefault();
+            ServerPackage package = target.GetAll().FirstOrDefault();
             Assert.NotNull(package);
             Assert.Equal(PackageId, package.Id);
             Assert.Equal(PackageVersion, package.Version);
         }
 
         [Fact]
-        public void Exists_IsCaseInsensitive()
-        {
+        public void Exists_IsCaseInsensitive() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(false);
-            var target = new ServerPackageCache(fileSystem.Object, CacheFileName);
-            target.Add(new ServerPackage
-            {
+            ServerPackageCache target = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            target.Add(new ServerPackage {
                 Id = "NuGet.Versioning",
                 Version = new SemanticVersion("3.5.0-beta2"),
             }, enableDelisting: false);
 
             // Act
-            var actual = target.Exists("nuget.versioning", new SemanticVersion("3.5.0-BETA2"));
+            bool actual = target.Exists("nuget.versioning", new SemanticVersion("3.5.0-BETA2"));
 
             // Assert
             Assert.True(actual);
         }
 
         [Fact]
-        public void Exists_ReturnsFalseWhenPackageDoesNotExist()
-        {
+        public void Exists_ReturnsFalseWhenPackageDoesNotExist() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(false);
-            var target = new ServerPackageCache(fileSystem.Object, CacheFileName);
-            target.Add(new ServerPackage
-            {
+            ServerPackageCache target = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            target.Add(new ServerPackage {
                 Id = "NuGet.Versioning",
                 Version = new SemanticVersion("3.5.0-beta2"),
             }, enableDelisting: false);
 
             // Act
-            var actual = target.Exists("NuGet.Frameworks", new SemanticVersion("3.5.0-beta2"));
+            bool actual = target.Exists("NuGet.Frameworks", new SemanticVersion("3.5.0-beta2"));
 
             // Assert
             Assert.False(actual);
         }
 
         [Fact]
-        public void Exists_ReturnsTrueWhenPackageExists()
-        {
+        public void Exists_ReturnsTrueWhenPackageExists() {
             // Arrange
-            var fileSystem = new Mock<IFileSystem>();
+            Mock<IFileSystem> fileSystem = new Mock<IFileSystem>();
             fileSystem
                 .Setup(x => x.FileExists(CacheFileName))
                 .Returns(false);
-            var target = new ServerPackageCache(fileSystem.Object, CacheFileName);
-            target.Add(new ServerPackage
-            {
+            ServerPackageCache target = new ServerPackageCache(fileSystem.Object, CacheFileName);
+            target.Add(new ServerPackage {
                 Id = "NuGet.Versioning",
                 Version = new SemanticVersion("3.5.0-beta2"),
             }, enableDelisting: false);
 
             // Act
-            var actual = target.Exists("NuGet.Versioning", new SemanticVersion("3.5.0-beta2"));
+            bool actual = target.Exists("NuGet.Versioning", new SemanticVersion("3.5.0-beta2"));
 
             // Assert
             Assert.True(actual);

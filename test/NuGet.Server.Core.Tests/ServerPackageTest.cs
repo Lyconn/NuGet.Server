@@ -1,15 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
+using Moq;
 using System.Linq;
 using System.Runtime.Versioning;
-using Moq;
 using Xunit;
 
-namespace NuGet.Server.Core.Infrastructure.Tests
-{
-    public class ServerPackageTest
-    {
+namespace NuGet.Server.Core.Infrastructure.Tests {
+    public class ServerPackageTest {
         [Theory]
         [InlineData("1.0.0", false)]
         [InlineData("1.0.0-alpha", false)]
@@ -17,15 +15,14 @@ namespace NuGet.Server.Core.Infrastructure.Tests
         [InlineData("1.0.0+githash", true)]
         [InlineData("1.0.0-alpha+githash", true)]
         [InlineData("1.0.0-alpha.1+githash", true)]
-        public void IsSemVer2_CanBeDeterminedByPackageVersion(string version, bool isSemVer2)
-        {
+        public void IsSemVer2_CanBeDeterminedByPackageVersion(string version, bool isSemVer2) {
             // Arrange
-            var package = new Mock<IPackage>();
+            Mock<IPackage> package = new Mock<IPackage>();
             package.Setup(x => x.Version).Returns(new SemanticVersion(version));
-            var packageDerivedData = new PackageDerivedData();
+            PackageDerivedData packageDerivedData = new PackageDerivedData();
 
             // Act
-            var serverPackage = new ServerPackage(package.Object, packageDerivedData);
+            ServerPackage serverPackage = new ServerPackage(package.Object, packageDerivedData);
 
             // Assert
             Assert.Equal(isSemVer2, serverPackage.IsSemVer2);
@@ -40,10 +37,9 @@ namespace NuGet.Server.Core.Infrastructure.Tests
         [InlineData("[1.0.0-alpha, 2.0.0-alpha.1)", true)]
         [InlineData("[1.0.0, 2.0.0+githash)", true)]
         [InlineData("[1.0.0-alpha, 2.0.0)", false)]
-        public void IsSemVer2_CanBeDeterminedByDependencyVersionRange(string versionRange, bool isSemVer2)
-        {
+        public void IsSemVer2_CanBeDeterminedByDependencyVersionRange(string versionRange, bool isSemVer2) {
             // Arrange
-            var package = new Mock<IPackage>();
+            Mock<IPackage> package = new Mock<IPackage>();
             package
                 .Setup(x => x.Version)
                 .Returns(new SemanticVersion("1.0.0"));
@@ -58,10 +54,10 @@ namespace NuGet.Server.Core.Infrastructure.Tests
                             new PackageDependency("OtherPackage", VersionUtility.ParseVersionSpec(versionRange))
                         })
                 }.AsEnumerable());
-            var packageDerivedData = new PackageDerivedData();
+            PackageDerivedData packageDerivedData = new PackageDerivedData();
 
             // Act
-            var serverPackage = new ServerPackage(package.Object, packageDerivedData);
+            ServerPackage serverPackage = new ServerPackage(package.Object, packageDerivedData);
 
             // Assert
             Assert.Equal(isSemVer2, serverPackage.IsSemVer2);

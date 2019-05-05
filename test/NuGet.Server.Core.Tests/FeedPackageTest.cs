@@ -6,38 +6,33 @@ using System.Globalization;
 using System.Linq;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class FeedPackageTest
-    {
+namespace NuGet.Server.Core.Tests {
+    public class FeedPackageTest {
         [Fact]
-        public void FeedPackageHasSameMembersAsDataServicePackage()
-        {
+        public void FeedPackageHasSameMembersAsDataServicePackage() {
             // Arrange
             // This is not pretty but it's the most effective way.
-            var excludedProperties = new[] { "Owners", "ReportAbuseUrl", "GalleryDetailsUrl", "DownloadUrl", "Rating", "RatingsCount", "Language", 
+            string[] excludedProperties = new[] { "Owners", "ReportAbuseUrl", "GalleryDetailsUrl", "DownloadUrl", "Rating", "RatingsCount", "Language",
                                              "AssemblyReferences", "FrameworkAssemblies", "DependencySets", "PackageAssemblyReferences", "LicenseNames",
                                              "LicenseNameCollection", "LicenseReportUrl"
             };
 
-            var feedPackageProperties = new HashSet<string>(
+            HashSet<string> feedPackageProperties = new HashSet<string>(
                 typeof(DataServices.ODataPackage).GetProperties().Select(p => p.Name), StringComparer.Ordinal);
 
-            var dataServiceProperties = typeof(DataServicePackage)
+            List<string> dataServiceProperties = typeof(DataServicePackage)
                 .GetProperties()
                 .Select(p => p.Name)
                 .ToList();
 
             // Assert
             // Assert.Equal(feedPackageProperties.Count, dataServiceProperties.Count);
-            foreach (var property in dataServiceProperties)
-            {
-                if (excludedProperties.Contains(property))
-                {
+            foreach (string property in dataServiceProperties) {
+                if (excludedProperties.Contains(property)) {
                     continue;
                 }
 
-                Assert.True(feedPackageProperties.Contains(property), 
+                Assert.True(feedPackageProperties.Contains(property),
                     string.Format(CultureInfo.InvariantCulture,
                         "Property {0} could not be found in NuGet.Server package.", property));
             }

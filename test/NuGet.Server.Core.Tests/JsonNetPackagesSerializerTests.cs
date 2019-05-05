@@ -1,30 +1,26 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Server.Core.Infrastructure;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using NuGet.Server.Core.Infrastructure;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class JsonNetPackagesSerializerTests
-    {
+namespace NuGet.Server.Core.Tests {
+    public class JsonNetPackagesSerializerTests {
         [Fact]
-        public void TestSerializationRoundTrip()
-        {
+        public void TestSerializationRoundTrip() {
             // Arrange
-            var originalPackages = GenerateServerPackages(100);
-            var serializer = new JsonNetPackagesSerializer();
+            List<ServerPackage> originalPackages = GenerateServerPackages(100);
+            JsonNetPackagesSerializer serializer = new JsonNetPackagesSerializer();
 
             // Act
-            var deserializedPackages = new List<ServerPackage>();
-            using (var memoryStream = new MemoryStream())
-            {
+            List<ServerPackage> deserializedPackages = new List<ServerPackage>();
+            using (MemoryStream memoryStream = new MemoryStream()) {
                 serializer.Serialize(originalPackages, memoryStream);
 
                 memoryStream.Position = 0;
@@ -34,27 +30,21 @@ namespace NuGet.Server.Core.Tests
 
             // Assert
             Assert.Equal(originalPackages.Count, deserializedPackages.Count);
-            for (var i = 0; i < originalPackages.Count; i++)
-            {
+            for (int i = 0; i < originalPackages.Count; i++) {
                 Assert.True(PublicPropertiesEqual(originalPackages[i], deserializedPackages[i], "DependencySets", "FrameworkAssemblies", "PackageAssemblyReferences", "AssemblyReferences"));
             }
         }
 
-        private static bool PublicPropertiesEqual<T>(T a, T b, params string[] ignoreProperties) where T : class
-        {
-            if (a != null && b != null)
-            {
-                var type = typeof(T);
+        private static bool PublicPropertiesEqual<T>(T a, T b, params string[] ignoreProperties) where T : class {
+            if (a != null && b != null) {
+                Type type = typeof(T);
 
-                foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    if (!ignoreProperties.Contains(pi.Name))
-                    {
-                        var selfValue = type.GetProperty(pi.Name).GetValue(a, null);
-                        var toValue = type.GetProperty(pi.Name).GetValue(b, null);
+                foreach (PropertyInfo pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
+                    if (!ignoreProperties.Contains(pi.Name)) {
+                        object selfValue = type.GetProperty(pi.Name).GetValue(a, null);
+                        object toValue = type.GetProperty(pi.Name).GetValue(b, null);
 
-                        if (selfValue != toValue && (selfValue == null || !selfValue.Equals(toValue)) && !(selfValue is IEnumerable))
-                        {
+                        if (selfValue != toValue && (selfValue == null || !selfValue.Equals(toValue)) && !(selfValue is IEnumerable)) {
                             return false;
                         }
                     }
@@ -66,14 +56,11 @@ namespace NuGet.Server.Core.Tests
             return a == b;
         }
 
-        private static List<ServerPackage> GenerateServerPackages(int count)
-        {
-            var originalPackages = new List<ServerPackage>();
+        private static List<ServerPackage> GenerateServerPackages(int count) {
+            List<ServerPackage> originalPackages = new List<ServerPackage>();
 
-            for (var i = 0; i < count; i++)
-            {
-                var package = new ServerPackage
-                {
+            for (int i = 0; i < count; i++) {
+                ServerPackage package = new ServerPackage {
                     Id = "Package" + i,
                     Version = new SemanticVersion(1, 0, i, 0),
                     Title = "Title" + i,

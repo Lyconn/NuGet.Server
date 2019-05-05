@@ -4,12 +4,9 @@
 using NuGet.Server.Core.Infrastructure;
 using Xunit;
 
-namespace NuGet.Server.Core.Tests
-{
-    public class KnownPathUtilityTest
-    {
-        public class TryParseFileName
-        {
+namespace NuGet.Server.Core.Tests {
+    public class KnownPathUtilityTest {
+        public class TryParseFileName {
             [Theory]
             [InlineData(@"NuGet.Core\2.12.0\NuGet.Core.2.12.0.nupkg", true, "NuGet.Core", "2.12.0")]
             [InlineData(@"NuGet.Core\2.12.0-BETA\NuGet.Core.2.12.0-BETA.nupkg", true, "NuGet.Core", "2.12.0-BETA")]
@@ -30,13 +27,12 @@ namespace NuGet.Server.Core.Tests
             [InlineData(@"NuGet.Core\2.12.0\NuGet.Core.2.12.0.png", false, "NuGet.Core", "2.12.0")]
             [InlineData(@"root\NuGet.Core\NuGet.Core.2.12.0.nupkg", false, "root", null)]
             [InlineData(@"NuGet.Core\NuGet.Core.2.12.0.nupkg", false, null, null)]
-            public void WorksAsExpected(string path, bool expected, string id, string unparsedVersion)
-            {
+            public void WorksAsExpected(string path, bool expected, string id, string unparsedVersion) {
                 // Arrange
-                var version = unparsedVersion == null ? null : SemanticVersion.Parse(unparsedVersion);
+                SemanticVersion version = unparsedVersion == null ? null : SemanticVersion.Parse(unparsedVersion);
 
                 // Act
-                var actual = KnownPathUtility.TryParseFileName(path, out var actualId, out var actualVersion);
+                bool actual = KnownPathUtility.TryParseFileName(path, out string actualId, out SemanticVersion actualVersion);
 
                 // Assert
                 Assert.Equal(expected, actual);
