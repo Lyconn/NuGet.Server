@@ -11,9 +11,9 @@ using System.Web.Http.Routing;
 
 // The consuming project executes this logic with its own copy of this class. This is done with a .pp file that is
 // added and transformed upon package install.
-#if DEBUG
+//#if DEBUG
 [assembly: WebActivatorEx.PreApplicationStartMethod(typeof(NuGet.Server.App_Start.NuGetODataConfig), "Start")]
-#endif
+//#endif
 
 namespace NuGet.Server.App_Start {
     public static class NuGetODataConfig {
