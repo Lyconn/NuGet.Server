@@ -361,6 +361,16 @@ namespace NuGet.Server.V2.Controllers {
 
             HttpResponseMessage retValue;
             if (this._authenticationService.IsAuthenticated(this.User, apiKey, package.Id)) {
+
+                /**** Remove That matched same version but not same build number *****/
+                SemanticVersion uploadVersion = package.Version;
+                IEnumerable<IServerPackage> previousPackages = await this._serverRepository.GetPackagesAsync(ClientCompatibility.Max, token);
+                IEnumerable<IServerPackage> matchedPackages = previousPackages.Where(p => p.Id == package.Id && p.Version.Version.ToString(3) == uploadVersion.Version.ToString(3));
+                foreach (IServerPackage p in matchedPackages) {
+                    await this._serverRepository.RemovePackageAsync(p.Id, p.Version, token);
+                }
+                /***** *****/
+
                 await this._serverRepository.AddPackageAsync(package, token);
                 retValue = this.Request.CreateResponse(HttpStatusCode.Created);
             } else {
